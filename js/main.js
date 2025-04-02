@@ -307,5 +307,8 @@ function removeFavoriteMovie(movieName) {
   sessionStorage.setItem("favorites", JSON.stringify(favorites));
 
   loadFavorites();
-}
+}document.getElementById("filter").addEventListener("change", (event) => {
+  const selectedValue = event.target.value;
+});
+
 fetchMovies();
