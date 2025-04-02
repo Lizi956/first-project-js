@@ -21,5 +21,4 @@ async function fetchMovieDetails() {
         console.error(' error API:', error);
     }
 }
-
-fetchMovieDetails();
+fetchMovieDetails ();

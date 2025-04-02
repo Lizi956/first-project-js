@@ -308,5 +308,4 @@ function removeFavoriteMovie(movieName) {
 
   loadFavorites();
 }
-
-document.addEventListener("DOMContentLoaded", loadFavorites);
+fetchMovies();
