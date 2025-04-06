@@ -6,17 +6,19 @@ export let allMovies = [];
 export let currentPage = 1;
 let searchQuery = "";
 
-import { fetchMovies } from "./fetchmovies.js";
-
+// Dark Mode ფუნქცია
 function toggleDarkMode() {
   const isDarkMode = document.body.classList.toggle("dark-mode");
 
+  // localStorage-ში შენახვა
   localStorage.setItem("darkMode", isDarkMode ? "enabled" : "disabled");
 
+  // ღილაკის ტექსტის განახლება
   const button = document.getElementById("darkModeButton");
   button.textContent = isDarkMode ? "🌞 Light Mode" : "🌙 Dark Mode";
 }
 
+// Movies ფუნქცია
 function displayMovies(movies) {
   const moviesContainer = document.getElementById("movies");
   moviesContainer.innerHTML = "";
@@ -26,23 +28,15 @@ function displayMovies(movies) {
     movieCard.classList.add("movie-card");
 
     movieCard.innerHTML = `
-      <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${
-      movie.title
-    }" class="movie-image">
+      <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${movie.title}" class="movie-image">
       <div class="movie-info">
         <h2>${movie.title}</h2>
         <p class="movie-description">${movie.overview}</p>
         <div class="movie-details">
-          <span class="movie-year">${
-            movie.release_date ? movie.release_date.split("-")[0] : "N/A"
-          }</span>
+          <span class="movie-year">${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</span>
         </div>
-        <button onclick="addFavoriteMovie('${
-          movie.title
-        }')" class="movie-button">Add to Favorites</button>
-        <button onclick="goToMovieDetails(${
-          movie.id
-        })" class="movie-button">See Details</button>
+        <button onclick="addFavoriteMovie('${movie.title}')" class="movie-button">Add to Favorites</button>
+        <button onclick="goToMovieDetails(${movie.id})" class="movie-button">See Details</button>
       </div>
     `;
 
@@ -53,6 +47,7 @@ function displayMovies(movies) {
   document.getElementById("nextPage").disabled = movies.length < 20;
 }
 
+// Favorite Movies ფუნქციები
 window.addFavoriteMovie = function (movieName) {
   let sessionFavorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
   if (!sessionFavorites.includes(movieName)) {
@@ -109,14 +104,22 @@ function loadFavorites() {
 
 function showCookieMessage() {
   let cookieMessage = document.getElementById("cookieMessage");
-  cookieMessage.style.display = "block";
+  
+  // დარწმუნდით, რომ ელემენტი არსებობს
+  if (cookieMessage) {
+    cookieMessage.style.display = "block";
+  }
 }
 
 function acceptCookies() {
   setCookie("cookiesAccepted", "true", 30);
-  document.getElementById("cookieMessage").style.display = "none";
+  let cookieMessage = document.getElementById("cookieMessage");
+  if (cookieMessage) {
+    cookieMessage.style.display = "none";
+  }
 }
 
+// Cookie ფუნქციები
 function setCookie(name, value, days) {
   let expires = "";
   if (days) {
@@ -124,8 +127,7 @@ function setCookie(name, value, days) {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     expires = "; expires=" + date.toUTCString();
   }
-  document.cookie =
-    name + "=" + encodeURIComponent(value) + "; path=/" + expires;
+  document.cookie = name + "=" + encodeURIComponent(value) + "; path=/" + expires;
 }
 
 function getCookie(name) {
@@ -133,12 +135,12 @@ function getCookie(name) {
   let ca = document.cookie.split(";");
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i].trim();
-    if (c.indexOf(nameEQ) == 0)
-      return decodeURIComponent(c.substring(nameEQ.length));
+    if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length));
   }
   return null;
 }
 
+// Movie Details ფუნქცია
 window.goToMovieDetails = function (movieId) {
   window.location.href = `movie-details.html?id=${movieId}`;
 };
@@ -169,7 +171,20 @@ document.getElementById("nextPage").addEventListener("click", () => {
   fetchMovies();
 });
 
+// fetchMovies ფუნქცია
+function fetchMovies() {
+  const url = `${BASE_URL}?api_key=${API_KEY}&page=${currentPage}`;
+  fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      allMovies = data.results;
+      displayMovies(allMovies);
+    });
+}
+
+// main.js-დან გამოვიძახოთ
 window.onload = function () {
+  // Dark Mode Load
   const darkMode = localStorage.getItem("darkMode");
   if (darkMode === "enabled") {
     document.body.classList.add("dark-mode");
@@ -178,10 +193,10 @@ window.onload = function () {
     document.getElementById("darkModeButton").textContent = "🌙 Dark Mode";
   }
 
-  document
-    .getElementById("darkModeButton")
-    .addEventListener("click", toggleDarkMode);
+  // Dark Mode Button
+  document.getElementById("darkModeButton").addEventListener("click", toggleDarkMode);
 
+  // Cookies Load
   loadFavorites();
   const cookiesAccepted = getCookie("cookiesAccepted");
   if (!cookiesAccepted) {
