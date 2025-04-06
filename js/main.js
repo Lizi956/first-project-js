@@ -121,12 +121,19 @@ document.getElementById("acceptCookies").addEventListener("click", () => {
 function addFavoriteMovie(movieName) {
     console.log("Add movie:", movieName);
 
+    // SessionStorage-დან ფავორიტების დამატება
     let favorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
-
     if (!favorites.includes(movieName)) {
         favorites.push(movieName);
         sessionStorage.setItem("favorites", JSON.stringify(favorites));
-        setCookie("favorites", favorites.join(","), 30);
+    }
+
+    // ქუქიდან ფავორიტების დამატება
+    let cookieFavorites = getCookie("favorites");
+    cookieFavorites = cookieFavorites ? cookieFavorites.split(",") : [];
+    if (!cookieFavorites.includes(movieName)) {
+        cookieFavorites.push(movieName);
+        setCookie("favorites", cookieFavorites.join(","), 30); // 30 დღის განმავლობაში
     }
 
     loadFavorites();
@@ -134,6 +141,7 @@ function addFavoriteMovie(movieName) {
 
 // Display Favorite Movies from sessionStorage or Cookies
 function loadFavorites() {
+    // Loading from sessionStorage
     let favorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
     let list = document.getElementById("favoritesList");
 
@@ -160,6 +168,13 @@ function removeFavoriteMovie(movieName) {
     let favorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
     favorites = favorites.filter((movie) => movie !== movieName);
     sessionStorage.setItem("favorites", JSON.stringify(favorites));
+
+    // Removing from cookies
+    let cookieFavorites = getCookie("favorites");
+    cookieFavorites = cookieFavorites ? cookieFavorites.split(",") : [];
+    cookieFavorites = cookieFavorites.filter((movie) => movie !== movieName);
+    setCookie("favorites", cookieFavorites.join(","), 30);
+
     loadFavorites();
 }
 
