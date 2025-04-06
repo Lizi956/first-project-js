@@ -1,26 +1,20 @@
-const API_KEY = "9aecc4670a47be5097cd056f9243e661";
-const BASE_URL = "https://api.themoviedb.org/3/movie/popular";
+export const API_KEY = "9aecc4670a47be5097cd056f9243e661";
+export const BASE_URL = "https://api.themoviedb.org/3/movie/popular";
 const IMG_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
-let allMovies = [];
+export let allMovies = [];
+export let currentPage = 1;
 let searchQuery = "";
-let currentPage = 1;
-async function fetchMovies() {
-  try {
-    const response = await fetch(
-      `${BASE_URL}?api_key=${API_KEY}&page=${currentPage}`
-    );
 
-    if (!response.ok) {
-      throw new Error("error API ");
-    }
+import { fetchMovies } from "./fetchmovies.js";
 
-    const data = await response.json();
-    allMovies = data.results;
-    displayMovies(allMovies);
-  } catch (error) {
-    console.error(" error API:", error);
-  }
+function toggleDarkMode() {
+  const isDarkMode = document.body.classList.toggle("dark-mode");
+
+  localStorage.setItem("darkMode", isDarkMode ? "enabled" : "disabled");
+
+  const button = document.getElementById("darkModeButton");
+  button.textContent = isDarkMode ? "🌞 Light Mode" : "🌙 Dark Mode";
 }
 
 function displayMovies(movies) {
@@ -32,24 +26,25 @@ function displayMovies(movies) {
     movieCard.classList.add("movie-card");
 
     movieCard.innerHTML = `
-            <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${
+      <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${
       movie.title
     }" class="movie-image">
-            <div class="movie-info">
-                <h2>${movie.title}</h2>
-                <p class="movie-description">${movie.overview}</p>
-                <div class="movie-details">
-                    <span class="movie-year">${
-                      movie.release_date
-                        ? movie.release_date.split("-")[0]
-                        : "N/A"
-                    }</span>
-                </div>
-                <button class="movie-button" onclick="goToMovieDetails(${
-                  movie.id
-                })">see</button>
-            </div>
-        `;
+      <div class="movie-info">
+        <h2>${movie.title}</h2>
+        <p class="movie-description">${movie.overview}</p>
+        <div class="movie-details">
+          <span class="movie-year">${
+            movie.release_date ? movie.release_date.split("-")[0] : "N/A"
+          }</span>
+        </div>
+        <button onclick="addFavoriteMovie('${
+          movie.title
+        }')" class="movie-button">Add to Favorites</button>
+        <button onclick="goToMovieDetails(${
+          movie.id
+        })" class="movie-button">See Details</button>
+      </div>
+    `;
 
     moviesContainer.appendChild(movieCard);
   });
@@ -58,94 +53,69 @@ function displayMovies(movies) {
   document.getElementById("nextPage").disabled = movies.length < 20;
 }
 
-document.getElementById("searchInput").addEventListener("input", (e) => {
-  searchQuery = e.target.value.toLowerCase();
-  filterMovies();
-});
-
-document.getElementById("filter").addEventListener("change", filterMovies);
-function filterMovies() {
-  let filteredMovies = allMovies.filter((movie) =>
-    movie.title.toLowerCase().includes(searchQuery)
-  );
-}
-
-function filterMovies() {
-  let filteredMovies = allMovies.filter((movie) =>
-    movie.title.toLowerCase().includes(searchQuery)
-  );
-  displayMovies(filteredMovies);
-}
-
-async function fetchMovies() {
-  try {
-    const response = await fetch(
-      `${BASE_URL}?api_key=${API_KEY}&page=${currentPage}`
-    );
-    if (!response.ok) {
-      throw new Error("Error fetching movies.");
-    }
-
-    const data = await response.json();
-    allMovies = data.results;
-    filterMovies();
-  } catch (error) {
-    console.error("Error fetching movies:", error);
+window.addFavoriteMovie = function (movieName) {
+  let sessionFavorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
+  if (!sessionFavorites.includes(movieName)) {
+    sessionFavorites.push(movieName);
+    sessionStorage.setItem("favorites", JSON.stringify(sessionFavorites));
   }
-}
 
-document.getElementById("prevPage").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    fetchMovies();
+  let cookieFavorites = getCookie("favorites");
+  cookieFavorites = cookieFavorites ? cookieFavorites.split(",") : [];
+
+  if (!cookieFavorites.includes(movieName)) {
+    cookieFavorites.push(movieName);
+    setCookie("favorites", cookieFavorites.join(","), 30);
   }
-});
 
-document.getElementById("nextPage").addEventListener("click", () => {
-  currentPage++;
-  fetchMovies();
-});
+  loadFavorites();
+};
 
-function newFunction() {
-  displayMovies(filterMovies);
-  document.getElementById("prevPage").addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      fetchMovies();
-    }
+window.removeFavoriteMovie = function (movieName) {
+  let sessionFavorites = JSON.parse(sessionStorage.getItem("favorites")) || [];
+  sessionFavorites = sessionFavorites.filter((movie) => movie !== movieName);
+  sessionStorage.setItem("favorites", JSON.stringify(sessionFavorites));
+
+  let cookieFavorites = getCookie("favorites");
+  cookieFavorites = cookieFavorites ? cookieFavorites.split(",") : [];
+  cookieFavorites = cookieFavorites.filter((movie) => movie !== movieName);
+  setCookie("favorites", cookieFavorites.join(","), 30);
+
+  loadFavorites();
+};
+
+function loadFavorites() {
+  let favorites = getCookie("favorites");
+  favorites = favorites ? favorites.split(",") : [];
+
+  let list = document.getElementById("favoritesList");
+  list.innerHTML = "";
+
+  favorites.forEach((movie) => {
+    let li = document.createElement("li");
+    li.textContent = movie;
+
+    let removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "Delete";
+    removeBtn.onclick = function () {
+      removeFavoriteMovie(movie);
+    };
+
+    li.appendChild(removeBtn);
+    list.appendChild(li);
   });
 }
 
-function goToMovieDetails(movieId) {
-  window.location.href = `movie-details.html?id=${movieId}`;
+function showCookieMessage() {
+  let cookieMessage = document.getElementById("cookieMessage");
+  cookieMessage.style.display = "block";
 }
 
-fetchMovies();
-document.addEventListener("DOMContentLoaded", () => {
-  const isDarkMode = localStorage.getItem("darkMode") === "enabled";
-
-  if (isDarkMode) {
-    document.body.classList.add("dark-mode");
-  }
-
-  document.getElementById("toggleDarkMode").addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-
-    const newMode = document.body.classList.contains("dark-mode")
-      ? "enabled"
-      : "disabled";
-    localStorage.setItem("darkMode", newMode);
-  });
-});
-document.addEventListener("DOMContentLoaded", () => {
-  loadCart();
-});
-
-cart.forEach((item) => {
-  let li = document.createElement("li");
-  li.textContent = item;
-  cartItemsContainer.appendChild(li);
-});
+function acceptCookies() {
+  setCookie("cookiesAccepted", "true", 30);
+  document.getElementById("cookieMessage").style.display = "none";
+}
 
 function setCookie(name, value, days) {
   let expires = "";
@@ -164,151 +134,59 @@ function getCookie(name) {
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i].trim();
     if (c.indexOf(nameEQ) == 0)
-      return decodeURIComponent(c.substring(nameEQ.length, c.length));
+      return decodeURIComponent(c.substring(nameEQ.length));
   }
   return null;
 }
 
-function addFavoriteMovie(movieName) {
-  console.log("add movie:", movieName);
+window.goToMovieDetails = function (movieId) {
+  window.location.href = `movie-details.html?id=${movieId}`;
+};
 
-  let favorites = getCookie("favorites");
-  favorites = favorites ? favorites.split(",") : [];
-
-  if (!favorites.includes(movieName)) {
-    favorites.push(movieName);
-    setCookie("favorites", favorites.join(","), 30);
-  }
-
-  loadFavorites();
-}
-
-function loadFavorites() {
-  console.log("favorite movie install...");
-  let favorites = getCookie("favorites");
-  favorites = favorites ? favorites.split(",") : [];
-
-  let list = document.getElementById("favoritesList");
-  list.innerHTML = "";
-
-  favorites.forEach((movie) => {
-    let li = document.createElement("li");
-    li.textContent = movie;
-    list.appendChild(li);
-  });
-}
-
-function showCookieMessage() {
-  let cookieMessage = document.getElementById("cookieMessage");
-  cookieMessage.style.display = "block";
-}
-
-function acceptCookies() {
-  setCookie("cookiesAccepted", "true", 30);
-  document.getElementById("cookieMessage").style.display = "none";
-}
-
-function loadFavorites() {
-  let favorites = getCookie("favorites");
-  favorites = favorites ? favorites.split(",") : [];
-  let list = document.getElementById("favoritesList");
-
-  list.innerHTML = "";
-
-  favorites.forEach((movie) => {
-    let li = document.createElement("li");
-    li.textContent = movie;
-
-    let removeBtn = document.createElement("button");
-    removeBtn.className = "remove-btn";
-    removeBtn.textContent = "delete";
-    removeBtn.onclick = function () {
-      removeFavoriteMovie(movie);
-    };
-
-    li.appendChild(removeBtn);
-    list.appendChild(li);
-  });
-}
-
-function addFavoriteMovie(movieName) {
-  let favorites = getCookie("favorites");
-  favorites = favorites ? favorites.split(",") : [];
-
-  if (!favorites.includes(movieName)) {
-    favorites.push(movieName);
-    setCookie("favorites", favorites.join(","), 30);
-    loadFavorites();
-  }
-}
-
-function removeFavoriteMovie(movieName) {
-  let favorites = getCookie("favorites");
-  favorites = favorites ? favorites.split(",") : [];
-  favorites = favorites.filter((movie) => movie !== movieName);
-  setCookie("favorites", favorites.join(","), 30);
-  loadFavorites();
-}
-function addFavoriteMovie(movieName) {
-  let favorites = sessionStorage.getItem("favorites");
-
-  if (favorites) {
-    favorites = JSON.parse(favorites);
-  } else {
-    favorites = [];
-  }
-
-  if (!favorites.includes(movieName)) {
-    favorites.push(movieName);
-    sessionStorage.setItem("favorites", JSON.stringify(favorites));
-  }
-
-  loadFavorites();
-}
-
-function loadFavorites() {
-  let favorites = sessionStorage.getItem("favorites");
-
-  if (favorites) {
-    favorites = JSON.parse(favorites);
-  } else {
-    favorites = [];
-  }
-
-  let list = document.getElementById("favoritesList");
-  list.innerHTML = "";
-
-  favorites.forEach((movie) => {
-    let li = document.createElement("li");
-    li.textContent = movie;
-
-    let removeBtn = document.createElement("button");
-    removeBtn.className = "remove-btn";
-    removeBtn.textContent = "წაშლა";
-    removeBtn.onclick = function () {
-      removeFavoriteMovie(movie);
-    };
-
-    li.appendChild(removeBtn);
-    list.appendChild(li);
-  });
-}
-
-function removeFavoriteMovie(movieName) {
-  let favorites = sessionStorage.getItem("favorites");
-
-  if (favorites) {
-    favorites = JSON.parse(favorites);
-  } else {
-    favorites = [];
-  }
-
-  favorites = favorites.filter((movie) => movie !== movieName);
-  sessionStorage.setItem("favorites", JSON.stringify(favorites));
-
-  loadFavorites();
-}document.getElementById("filter").addEventListener("change", (event) => {
-  const selectedValue = event.target.value;
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  searchQuery = e.target.value.toLowerCase();
+  filterMovies();
 });
 
-fetchMovies();
+document.getElementById("filter").addEventListener("change", filterMovies);
+
+export function filterMovies() {
+  let filteredMovies = allMovies.data.filter((movie) =>
+    movie.title.toLowerCase().includes(searchQuery)
+  );
+  displayMovies(filteredMovies);
+}
+
+document.getElementById("prevPage").addEventListener("click", () => {
+  if (currentPage > 1) {
+    currentPage--;
+    fetchMovies();
+  }
+});
+
+document.getElementById("nextPage").addEventListener("click", () => {
+  currentPage++;
+  fetchMovies();
+});
+
+window.onload = function () {
+  const darkMode = localStorage.getItem("darkMode");
+  if (darkMode === "enabled") {
+    document.body.classList.add("dark-mode");
+    document.getElementById("darkModeButton").textContent = "🌞 Light Mode";
+  } else {
+    document.getElementById("darkModeButton").textContent = "🌙 Dark Mode";
+  }
+
+  document
+    .getElementById("darkModeButton")
+    .addEventListener("click", toggleDarkMode);
+
+  loadFavorites();
+  const cookiesAccepted = getCookie("cookiesAccepted");
+  if (!cookiesAccepted) {
+    showCookieMessage();
+  }
+
+  fetchMovies();
+};

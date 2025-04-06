@@ -562,3 +562,27 @@ li {
 #cookieMessage button:hover {
   background-color: #45a049;
 }
+/* Default Light Mode */
+body {
+  background-color: white;
+  color: black;
+  font-family: sans-serif;
+  transition: 0.3s ease;
+}
+
+body.dark-mode {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+#darkModeButton {
+  margin: 20px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+body.dark-mode #darkModeButton {
+  background-color: #333;
+  color: white;
+}
