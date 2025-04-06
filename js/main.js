@@ -28,15 +28,23 @@ function displayMovies(movies) {
     movieCard.classList.add("movie-card");
 
     movieCard.innerHTML = `
-      <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${movie.title}" class="movie-image">
+      <img src="${IMG_BASE_URL}${movie.poster_path}" alt="${
+      movie.title
+    }" class="movie-image">
       <div class="movie-info">
         <h2>${movie.title}</h2>
         <p class="movie-description">${movie.overview}</p>
         <div class="movie-details">
-          <span class="movie-year">${movie.release_date ? movie.release_date.split("-")[0] : "N/A"}</span>
+          <span class="movie-year">${
+            movie.release_date ? movie.release_date.split("-")[0] : "N/A"
+          }</span>
         </div>
-        <button onclick="addFavoriteMovie('${movie.title}')" class="movie-button">Add to Favorites</button>
-        <button onclick="goToMovieDetails(${movie.id})" class="movie-button">See Details</button>
+        <button onclick="addFavoriteMovie('${
+          movie.title
+        }')" class="movie-button">Add to Favorites</button>
+        <button onclick="goToMovieDetails(${
+          movie.id
+        })" class="movie-button">See Details</button>
       </div>
     `;
 
@@ -104,8 +112,7 @@ function loadFavorites() {
 
 function showCookieMessage() {
   let cookieMessage = document.getElementById("cookieMessage");
-  
- }
+}
 
 function acceptCookies() {
   setCookie("cookiesAccepted", "true", 30);
@@ -123,7 +130,8 @@ function setCookie(name, value, days) {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     expires = "; expires=" + date.toUTCString();
   }
-  document.cookie = name + "=" + encodeURIComponent(value) + "; path=/" + expires;
+  document.cookie =
+    name + "=" + encodeURIComponent(value) + "; path=/" + expires;
 }
 
 function getCookie(name) {
@@ -131,7 +139,8 @@ function getCookie(name) {
   let ca = document.cookie.split(";");
   for (let i = 0; i < ca.length; i++) {
     let c = ca[i].trim();
-    if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length));
+    if (c.indexOf(nameEQ) == 0)
+      return decodeURIComponent(c.substring(nameEQ.length));
   }
   return null;
 }
@@ -190,7 +199,9 @@ window.onload = function () {
   }
 
   // Dark Mode Button
-  document.getElementById("darkModeButton").addEventListener("click", toggleDarkMode);
+  document
+    .getElementById("darkModeButton")
+    .addEventListener("click", toggleDarkMode);
 
   // Cookies Load
   loadFavorites();
@@ -203,10 +214,9 @@ window.onload = function () {
     if (cookieMessage) {
       cookieMessage.style.display = "block";
     } else {
-      console.error('cookieMessage ელემენტი ვერ მოიძებნა.');
+      console.error("cookieMessage ელემენტი ვერ მოიძებნა.");
     }
   }
-  
 
   fetchMovies();
 };
