@@ -201,6 +201,19 @@ window.onload = function () {
   if (!cookiesAccepted) {
     showCookieMessage();
   }
+  let searchQuery = "";
+
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    filterMovies();
+  });
+
+  function filterMovies() {
+    let filteredMovies = allMovies.filter((movie) =>
+      movie.title.toLowerCase().includes(searchQuery)
+    );
+    displayMovies(filteredMovies);
+  }
 
   fetchMovies();
 };
