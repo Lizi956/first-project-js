@@ -202,6 +202,15 @@ window.onload = function () {
   if (!cookiesAccepted) {
     showCookieMessage();
   }
+  function showCookieMessage() {
+    let cookieMessage = document.getElementById("cookieMessage");
+    if (cookieMessage) {
+      cookieMessage.style.display = "block";
+    } else {
+      console.error('cookieMessage ელემენტი ვერ მოიძებნა.');
+    }
+  }
+  
 
   fetchMovies();
 };
