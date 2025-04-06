@@ -105,11 +105,7 @@ function loadFavorites() {
 function showCookieMessage() {
   let cookieMessage = document.getElementById("cookieMessage");
   
-  // დარწმუნდით, რომ ელემენტი არსებობს
-  if (cookieMessage) {
-    cookieMessage.style.display = "block";
-  }
-}
+ }
 
 function acceptCookies() {
   setCookie("cookiesAccepted", "true", 30);
